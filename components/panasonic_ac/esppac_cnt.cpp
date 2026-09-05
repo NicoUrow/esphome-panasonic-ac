@@ -185,6 +185,14 @@ void PanasonicACCNT::loop() {
   {
     log_packet(this->rx_buffer_);
 
+    // Some Panasonic CN-CNT units send an isolated 0x00. It is not a valid
+    // CZ-TACG1 packet, so ignore it without passing it to the packet parser.
+    if (this->rx_buffer_.size() == 1 && this->rx_buffer_[0] == 0x00) {
+      ESP_LOGV(TAG, "Ignoring isolated RX 0x00");
+      this->rx_buffer_.clear();
+      return;
+    }
+
     if (!verify_packet())  // Verify length, header, counter and checksum
       return;
 
